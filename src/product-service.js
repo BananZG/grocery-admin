@@ -4,8 +4,8 @@ export default class ProductService {
     constructor() {
         for (var i=1; i< 51; i ++) {
             var temp = JSON.parse(JSON.stringify(this.dummyData));
-            temp.id = i.toString();
-            temp.title = "item (" + temp.id + ")"
+            temp.id = i;
+            temp.title = "item (" + temp.id.toString() + ")"
             this.data.push(temp);
         }
     }
