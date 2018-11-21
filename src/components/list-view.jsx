@@ -11,9 +11,13 @@ import ProductService from '../product-service'
 
 const styles = theme => ({
   root: {
-    width: '100%',
+    width: 'auto',
     marginTop: theme.spacing.unit * 3,
+    margin: 15,
     overflowX: 'auto',
+  },
+  paper: {
+    padding: 15,
   },
   table: {
     minWidth: 700,
@@ -43,7 +47,7 @@ class ListView extends Component {
         <TableBody>
         {this.data.map(row => {
             return (
-              <TableRow key={row.id}>
+              <TableRow hover key={row.id}>
                 <TableCell component="th" scope="row">
                   {row.title}
                 </TableCell>

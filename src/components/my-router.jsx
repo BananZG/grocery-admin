@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { BrowserRouter, Route, Switch, Link, Redirect, Prompt } from "react-router-dom";
+import { Route, Redirect } from "react-router-dom";
 import Dashboard from './dashboard';
 import ListView from './list-view';
 
