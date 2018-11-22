@@ -26,7 +26,7 @@ var router = express.Router();
 
 app.use(function (req, res, next) {
     console.log(Date.now() + ": " + req.method + " for " + req.url);
-    setTimeout(function(){
+    setTimeout(function () {
         next();
     }, 300);
 });
@@ -39,12 +39,32 @@ app.get('/', function (req, res) {
 })
 
 // create a GET route
-router.get('/products', (req, res) => {
+router.get('/product', (req, res) => {
     var ret;
-    if(req.query.id != null) {
-        ret = data.find(e=> e.id == req.query.id);
+    if (req.query.id != null) {
+        ret = data.find(e => e.id == req.query.id);
     } else {
         ret = data;
     }
     res.send(ret);
+});
+
+router.delete('/product', function (req, res) {
+    let id = req.query.id;
+    if (id == null) {
+        res.send({
+            "status": "failed",
+            "error": "id not passed"
+        });
+    }
+    let index = data.findIndex(e => e.id == id);
+
+    if (index == -1) {
+        res.send({
+            "status": "failed",
+            "error": "id (" + id + ") not found"
+        });
+    }
+    ret = data.splice(index, 1);
+    res.send({ "status": "success" });
 });

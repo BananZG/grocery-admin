@@ -10,13 +10,19 @@ export default class ProductService {
     }
 
     getAllProducts() {
-        return fetch("/products")
+        return fetch("/product")
             .then(res => res.json())
     }
 
     getSingleProduct(id) {
-        return fetch("/products/?id="+id)
+        return fetch("/product/?id="+id)
         .then(res => res.json())
+    }
+
+    deleteProduct(id) {
+        return fetch('/product/?id=' + id, {
+            method: 'DELETE',
+        }).then(res => res.json());
     }
 
 }

@@ -18,6 +18,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 import Button from '@material-ui/core/Button';
 import { Link } from 'react-router-dom';
+import AlertDialog from "./alert-dialog";
 
 const styles = theme => ({
   root: {
@@ -125,6 +126,9 @@ class ListView extends Component {
 
   state = {
     isLoaded: false,
+    isLoading: false,
+    showDeleteDialog: false,
+    deleteId: null,
     order: "asc",
     orderBy: "title",
     items: [],
@@ -133,18 +137,45 @@ class ListView extends Component {
   };
 
   componentDidMount() {
+    this.getAllProducts();
+  }
+
+  getAllProducts() {
+    this.setState({isLoading:true});
     let service = ProductService.getInstance();
     service.getAllProducts()
       .then(
         (result) => {
           this.setState({
             isLoaded: true,
+            isLoading: false,
             items: result
           });
         },
         (error) => {
           this.setState({
             isLoaded: true,
+            isLoading: false,
+            error
+          });
+        }
+      )
+  }
+
+  deleteProduct(id) {
+    this.setState({isLoading:true});
+    let service = ProductService.getInstance();
+    service.deleteProduct(id)
+      .then(
+        (result) => {
+          if(result.status === "success") {
+            this.getAllProducts();
+          }
+        },
+        (error) => {
+          this.setState({
+            isLoaded: true,
+            isLoading: false,
             error
           });
         }
@@ -172,7 +203,7 @@ class ListView extends Component {
 
   render() {
     const { classes } = this.props;
-    const { items, order, orderBy, rowsPerPage, page, isLoaded, error } = this.state;
+    const { items, order, orderBy, rowsPerPage, page, isLoaded, isLoading, showDeleteDialog, deleteId, error } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, items.length - page * rowsPerPage);
     if (!isLoaded) {
       return (
@@ -187,6 +218,7 @@ class ListView extends Component {
     else
       return (
         <Paper className={classes.root}>
+        { isLoading ? <LinearProgress /> : null }
           <Table className={classes.table}>
             <EnhancedTableHead
               order={order}
@@ -208,7 +240,8 @@ class ListView extends Component {
                         <Button variant="outlined" className={classes.button} component={Link} to={`/editItem/${row.id}`}>
                           <EditIcon />
                         </Button>
-                        <Button variant="outlined" className={classes.button} color="secondary">
+                        <Button variant="outlined" className={classes.button} color="secondary" onClick={()=>this.setState({showDeleteDialog:true
+                        , deleteId:row.id})}>
                           <DeleteIcon />
                         </Button>
                       </TableCell>
@@ -237,6 +270,7 @@ class ListView extends Component {
             onChangePage={this.handleChangePage}
             onChangeRowsPerPage={this.handleChangeRowsPerPage}
           />
+          {showDeleteDialog?(<AlertDialog title="Warning" message="Are you sure you want to delete this data?" hideCallback={(e)=>this.setState({showDeleteDialog:e})} button2Action={()=>this.deleteProduct(deleteId)}/>):null}
         </Paper>
       );
   }
