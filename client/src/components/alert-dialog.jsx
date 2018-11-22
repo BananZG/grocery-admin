@@ -30,10 +30,10 @@ class AlertDialog extends React.Component {
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>
-                        <Button variant="outlined" onClick={() => { this.handleClose(button1Action) }} color={button1Color ? button1Color : "secondary"}>
+                        <Button variant="outlined" onClick={() => { this.handleClose(button1Action) }} color={button1Color ? button1Color : "primary"}>
                             {button1Text ? button1Text : "Cancel"}
                         </Button>
-                        <Button variant="outlined" onClick={() => { this.handleClose(button2Action) }} color={button2Color ? button2Color : "primary"} autoFocus>
+                        <Button variant="outlined" onClick={() => { this.handleClose(button2Action) }} color={button2Color ? button2Color : "secondary"} autoFocus>
                             {button2Text ? button2Text : "OK"}
                         </Button>
                     </DialogActions>

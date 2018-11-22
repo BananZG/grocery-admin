@@ -11,7 +11,6 @@ import TablePagination from "@material-ui/core/TablePagination";
 import ProductService from '../product-service'
 import LinearProgress from '@material-ui/core/LinearProgress';
 import ErrorPage from './error-page';
-
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Tooltip from "@material-ui/core/Tooltip";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -19,6 +18,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import Button from '@material-ui/core/Button';
 import { Link } from 'react-router-dom';
 import AlertDialog from "./alert-dialog";
+import queryString from 'query-string'
 
 const styles = theme => ({
   root: {
@@ -141,7 +141,7 @@ class ListView extends Component {
   }
 
   getAllProducts() {
-    this.setState({isLoading:true});
+    this.setState({ isLoading: true });
     let service = ProductService.getInstance();
     service.getAllProducts()
       .then(
@@ -163,12 +163,12 @@ class ListView extends Component {
   }
 
   deleteProduct(id) {
-    this.setState({isLoading:true});
+    this.setState({ isLoading: true });
     let service = ProductService.getInstance();
     service.deleteProduct(id)
       .then(
         (result) => {
-          if(result.status === "success") {
+          if (result.status === "success") {
             this.getAllProducts();
           }
         },
@@ -203,6 +203,8 @@ class ListView extends Component {
 
   render() {
     const { classes } = this.props;
+    const queries = queryString.parse(this.props.location.search)
+    const q = queries.q;
     const { items, order, orderBy, rowsPerPage, page, isLoaded, isLoading, showDeleteDialog, deleteId, error } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, items.length - page * rowsPerPage);
     if (!isLoaded) {
@@ -216,63 +218,71 @@ class ListView extends Component {
       )
     }
     else
-      return (
-        <Paper className={classes.root}>
-        { isLoading ? <LinearProgress /> : null }
-          <Table className={classes.table}>
-            <EnhancedTableHead
-              order={order}
-              orderBy={orderBy}
-              onRequestSort={this.handleRequestSort}
-            />
-            <TableBody>
-              {stableSort(items, getSorting(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map(row => {
-                  return (
-                    <TableRow hover key={row.id}>
-                      {headers.map(each => {
-                        return (
-                          <TableCell key={each.id} numeric={each.numeric}>{row[each.id]}</TableCell>
-                        )
-                      })}
-                      <TableCell>
-                        <Button variant="outlined" className={classes.button} component={Link} to={`/editItem/${row.id}`}>
-                          <EditIcon />
-                        </Button>
-                        <Button variant="outlined" className={classes.button} color="secondary" onClick={()=>this.setState({showDeleteDialog:true
-                        , deleteId:row.id})}>
-                          <DeleteIcon />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              {emptyRows > 0 && items.length < 20 && (
-                <TableRow style={{ height: 49 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            rowsPerPageOptions={[20, 50, 100]}
-            component="div"
-            count={items.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            backIconButtonProps={{
-              "aria-label": "Previous Page"
-            }}
-            nextIconButtonProps={{
-              "aria-label": "Next Page"
-            }}
-            onChangePage={this.handleChangePage}
-            onChangeRowsPerPage={this.handleChangeRowsPerPage}
+      var tempItems;
+    if (q != null && q.length > 0) {
+      tempItems = items.filter(e => { return e.title.includes(q) || e.desc.includes(q) });
+    } else {
+      tempItems = items;
+    }
+    return (
+      <Paper className={classes.root}>
+        {isLoading ? <LinearProgress /> : null}
+        <Table className={classes.table}>
+          <EnhancedTableHead
+            order={order}
+            orderBy={orderBy}
+            onRequestSort={this.handleRequestSort}
           />
-          {showDeleteDialog?(<AlertDialog title="Warning" message="Are you sure you want to delete this data?" hideCallback={(e)=>this.setState({showDeleteDialog:e})} button2Action={()=>this.deleteProduct(deleteId)}/>):null}
-        </Paper>
-      );
+          <TableBody>
+            {stableSort(tempItems, getSorting(order, orderBy))
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map(row => {
+                return (
+                  <TableRow hover key={row.id}>
+                    {headers.map(each => {
+                      return (
+                        <TableCell key={each.id} numeric={each.numeric}>{row[each.id]}</TableCell>
+                      )
+                    })}
+                    <TableCell>
+                      <Button variant="outlined" className={classes.button} component={Link} to={`/editItem/${row.id}`}>
+                        <EditIcon />
+                      </Button>
+                      <Button variant="outlined" className={classes.button} color="secondary" onClick={() => this.setState({
+                        showDeleteDialog: true
+                        , deleteId: row.id
+                      })}>
+                        <DeleteIcon />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            {emptyRows > 0 && tempItems.length < 20 && (
+              <TableRow style={{ height: 49 * emptyRows }}>
+                <TableCell colSpan={6} />
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        <TablePagination
+          rowsPerPageOptions={[20, 50, 100]}
+          component="div"
+          count={tempItems.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          backIconButtonProps={{
+            "aria-label": "Previous Page"
+          }}
+          nextIconButtonProps={{
+            "aria-label": "Next Page"
+          }}
+          onChangePage={this.handleChangePage}
+          onChangeRowsPerPage={this.handleChangeRowsPerPage}
+        />
+        {showDeleteDialog ? (<AlertDialog title="Warning" message="Are you sure you want to delete this data?" hideCallback={(e) => this.setState({ showDeleteDialog: e })} button2Action={() => this.deleteProduct(deleteId)} />) : null}
+      </Paper>
+    );
   }
 }
 

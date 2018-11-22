@@ -14,7 +14,8 @@ import SearchIcon from '@material-ui/icons/Search';
 import Dashboard from '@material-ui/icons/Dashboard';
 import ListAlt from '@material-ui/icons/ListAlt';
 import MoreIcon from '@material-ui/icons/MoreVert';
-import {Link} from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
+import queryString from 'query-string'
 
 const styles = theme => ({
   root: {
@@ -90,6 +91,7 @@ const styles = theme => ({
 
 class PrimarySearchAppBar extends React.Component {
   state = {
+    q: "",
     mobileMoreAnchorEl: null,
   };
 
@@ -101,10 +103,39 @@ class PrimarySearchAppBar extends React.Component {
     this.setState({ mobileMoreAnchorEl: null });
   };
 
+  callRedirectTo = (url, q) => {
+    // if has redirectTo text.
+    let canHaveQ = this.canHaveQ(url);
+    var tempq = "";
+    if (q != null && q.length > 0 && canHaveQ !== -1) {
+      tempq = "?q=" + q;
+    }
+    this.props.history.push(url + tempq);
+  }
+
+  handleSearch = event => {
+    this.setState({
+      q: event.target.value,
+    });
+    this.callRedirectTo(this.props.location.pathname, event.target.value)
+  };
+  componentDidMount() {
+    const queries = queryString.parse(this.props.location.search)
+    const tempq = queries.q;
+    if (this.state.q !== tempq) {
+      this.setState({ q: tempq });
+    }
+  }
+
+  canHaveQ = e => {
+    return ["/dashboard", "/listView"].includes(e);
+  }
+
   render() {
-    const { mobileMoreAnchorEl } = this.state;
+    const { mobileMoreAnchorEl, q } = this.state;
     const { classes } = this.props;
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+    let canHaveQ = this.canHaveQ(this.props.location.pathname);
 
     const renderMobileMenu = (
       <Menu
@@ -115,20 +146,19 @@ class PrimarySearchAppBar extends React.Component {
         onClose={this.handleMobileMenuClose}
       >
         <MenuItem component={Link} to="/dashboard" onClick={this.handleMobileMenuClose}>
-          <IconButton  color="inherit">
-              <Dashboard />
+          <IconButton color="inherit">
+            <Dashboard />
           </IconButton>
           <p>Dashboard</p>
         </MenuItem>
         <MenuItem>
-          <IconButton color="inherit"  component={Link} to="/listView" onClick={this.handleMobileMenuClose}>
-              <ListAlt />
+          <IconButton color="inherit" component={Link} to="/listView" onClick={this.handleMobileMenuClose}>
+            <ListAlt />
           </IconButton>
           <p>List View</p>
         </MenuItem>
       </Menu>
     );
-
     return (
       <div className={classes.root}>
         <AppBar position="static">
@@ -144,7 +174,10 @@ class PrimarySearchAppBar extends React.Component {
                 <SearchIcon />
               </div>
               <InputBase
+                disabled={!canHaveQ}
                 placeholder="Search…"
+                value={q}
+                onChange={this.handleSearch}
                 classes={{
                   root: classes.inputRoot,
                   input: classes.inputInput,
@@ -153,11 +186,11 @@ class PrimarySearchAppBar extends React.Component {
             </div>
             <div className={classes.grow} />
             <div className={classes.sectionDesktop}>
-              <IconButton color="inherit" component={Link} to="/dashboard">
-                  <Dashboard />
+              <IconButton color="inherit" onClick={() => this.callRedirectTo("/dashboard", q)}>
+                <Dashboard />
               </IconButton>
-              <IconButton color="inherit" component={Link} to="/listView">
-                  <ListAlt />
+              <IconButton color="inherit" onClick={() => this.callRedirectTo("/listView", q)}>
+                <ListAlt />
               </IconButton>
             </div>
             <div className={classes.sectionMobile}>
@@ -177,4 +210,4 @@ PrimarySearchAppBar.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(PrimarySearchAppBar);
+export default withRouter(withStyles(styles)(PrimarySearchAppBar));
